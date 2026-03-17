@@ -360,34 +360,12 @@
   .shop-legend-progress { font-size: 12px; color: var(--light); }
 
   /* LOG */
-  .log-wrap {
-    position: relative;
-    overflow: hidden;
-    border-bottom: 1px solid var(--border);
-  }
-  .log-delete-bg {
-    position: absolute;
-    right: 0; top: 0; bottom: 0;
-    width: 80px;
-    background: var(--red);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: 1px;
-  }
   .log-item {
     display: flex;
     align-items: center;
-    padding: 12px 0;
-    background: var(--cream);
-    position: relative;
-    transition: transform 0.25s ease;
-    touch-action: pan-y;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
   }
-  .log-item.swiped { transform: translateX(-80px); }
   .log-time { font-size: 11px; color: var(--light); width: 80px; flex-shrink: 0; }
   .log-name { flex: 1; font-size: 13px; }
   .log-score { font-size: 14px; font-weight: 700; min-width: 40px; text-align: right; }
@@ -398,18 +376,6 @@
     color: var(--light);
     padding: 40px 0;
     font-size: 14px;
-  }
-  .log-clear-btn {
-    width: 100%;
-    padding: 12px;
-    background: white;
-    border: 1.5px solid #FFCDD2;
-    border-radius: 10px;
-    color: var(--red);
-    font-size: 13px;
-    cursor: pointer;
-    font-family: 'Noto Sans SC', sans-serif;
-    margin-top: 16px;
   }
 
   /* RESET */
@@ -812,60 +778,12 @@ function renderLog() {
     el.innerHTML = '<div class="empty-log">🍎 今天还没有记录<br>去打卡第一个任务吧！</div>';
     return;
   }
-  const reversed = state.log.slice().reverse();
-  el.innerHTML = reversed.map((l, ri) => {
-    const realIdx = state.log.length - 1 - ri;
-    return `<div class="log-wrap" data-idx="${realIdx}">
-      <div class="log-delete-bg">删除</div>
-      <div class="log-item">
-        <span class="log-time">${l.time}</span>
-        <span class="log-name">${l.name}</span>
-        <span class="log-score ${l.score > 0 ? 'plus' : 'minus'}">${l.score > 0 ? '+' : ''}${l.score}</span>
-      </div>
-    </div>`;
-  }).join('') + (state.log.length ? `<button class="log-clear-btn" onclick="clearAllLog()">🗑️ 清空全部记录</button>` : '');
-  attachSwipe();
-}
-
-function attachSwipe() {
-  document.querySelectorAll('.log-wrap').forEach(wrap => {
-    const item = wrap.querySelector('.log-item');
-    let startX = 0, startY = 0, swiped = false;
-    item.addEventListener('touchstart', e => {
-      startX = e.touches[0].clientX;
-      startY = e.touches[0].clientY;
-      swiped = item.classList.contains('swiped');
-    }, { passive: true });
-    item.addEventListener('touchend', e => {
-      const dx = e.changedTouches[0].clientX - startX;
-      const dy = Math.abs(e.changedTouches[0].clientY - startY);
-      if (dy > 30) return;
-      if (dx < -40 && !swiped) {
-        document.querySelectorAll('.log-item.swiped').forEach(i => i.classList.remove('swiped'));
-        item.classList.add('swiped');
-      } else if (dx > 20 && swiped) {
-        item.classList.remove('swiped');
-      } else if (swiped) {
-        const idx = parseInt(wrap.dataset.idx);
-        deleteLog(idx);
-      }
-    }, { passive: true });
-  });
-}
-
-function deleteLog(idx) {
-  const entry = state.log[idx];
-  if (!entry) return;
-  state.avail -= entry.score;
-  if (entry.score > 0) state.total = Math.max(0, state.total - entry.score);
-  state.log.splice(idx, 1);
-  save(); updateHeader(); renderLog();
-}
-
-function clearAllLog() {
-  if (!confirm('确认清空全部记录？')) return;
-  state.log = [];
-  save(); renderLog();
+  el.innerHTML = state.log.slice().reverse().map(l => `
+    <div class="log-item">
+      <span class="log-time">${l.time}</span>
+      <span class="log-name">${l.name}</span>
+      <span class="log-score ${l.score > 0 ? 'plus' : 'minus'}">${l.score > 0 ? '+' : ''}${l.score}</span>
+    </div>`).join('');
 }
 
 function toggle(el) {
