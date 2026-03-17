@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🍎 苹果苏苏提升计划</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
+
+  :root {
+    --red: #D93025;
+    --red-light: #FF6B5B;
+    --red-pale: #FFE5E2;
+    --green: #2D7D32;
+    --green-light: #4CAF50;
+    --green-pale: #E8F5E9;
+    --green-bright: #00C853;
+    --cream: #FFF8F0;
+    --dark: #1A1A1A;
+    --mid: #444;
+    --light: #888;
+    --border: #E0D5CC;
+    --plus: #2D7D32;
+    --minus: #D93025;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans SC', sans-serif;
+    background: var(--cream);
+    color: var(--dark);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* HEADER */
+  .header {
+    background: linear-gradient(135deg, var(--red) 0%, #B71C1C 50%, var(--green) 100%);
+    padding: 24px 20px 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '🍎';
+    position: absolute;
+    font-size: 120px;
+    right: -20px;
+    top: -20px;
+    opacity: 0.15;
+  }
+  .header-title {
+    font-family: 'Ma Shan Zheng', cursive;
+    font-size: 26px;
+    color: white;
+    letter-spacing: 2px;
+  }
+  .header-sub {
+    font-size: 12px;
+    color: rgba(255,255,255,0.75);
+    margin-top: 4px;
+    letter-spacing: 1px;
+  }
+  .score-row {
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+  }
+  .score-box {
+    flex: 1;
+    background: rgba(255,255,255,0.18);
+    border-radius: 12px;
+    padding: 10px 14px;
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.3);
+  }
+  .score-label {
+    font-size: 11px;
+    color: rgba(255,255,255,0.8);
+    letter-spacing: 1px;
+  }
+  .score-num {
+    font-size: 28px;
+    font-weight: 700;
+    color: white;
+    line-height: 1.2;
+  }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    background: white;
+    border-bottom: 2px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .tab {
+    flex: 1;
+    padding: 12px 4px;
+    text-align: center;
+    font-size: 12px;
+    color: var(--light);
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+    font-weight: 500;
+  }
+  .tab.active {
+    color: var(--red);
+    border-bottom-color: var(--red);
+  }
+  .tab-icon { display: block; font-size: 18px; margin-bottom: 2px; }
+
+  /* PANELS */
+  .panel { display: none; padding: 16px; }
+  .panel.active { display: block; }
+
+  /* SECTION */
+  .section { margin-bottom: 20px; }
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--mid);
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 1.5px solid var(--border);
+  }
+  .section-icon { font-size: 16px; }
+
+  /* TASK ITEM */
+  .task-item {
+    display: flex;
+    align-items: center;
+    background: white;
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    border: 1.5px solid var(--border);
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+    overflow: hidden;
+  }
+  .task-item:active { transform: scale(0.98); }
+  .task-item.checked {
+    background: var(--green-pale);
+    border-color: var(--green-light);
+  }
+  .task-item.deduct {
+    border-color: #FFCDD2;
+  }
+  .task-item.deduct.checked {
+    background: #FFEBEE;
+    border-color: var(--red);
+  }
+  .task-check {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    margin-right: 12px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    font-size: 12px;
+  }
+  .task-item.checked .task-check {
+    background: var(--green-light);
+    border-color: var(--green-light);
+    color: white;
+  }
+  .task-item.deduct.checked .task-check {
+    background: var(--red);
+    border-color: var(--red);
+  }
+  .task-name {
+    flex: 1;
+    font-size: 14px;
+    color: var(--dark);
+    line-height: 1.4;
+  }
+  .task-item.checked .task-name {
+    text-decoration: line-through;
+    color: var(--light);
+  }
+  .task-score {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--plus);
+    min-width: 36px;
+    text-align: right;
+  }
+  .task-item.deduct .task-score { color: var(--minus); }
+
+  /* POPUP */
+  .popup-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 200;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .popup-overlay.show { display: flex; }
+  .popup {
+    background: white;
+    border-radius: 20px 20px 0 0;
+    padding: 28px 24px 40px;
+    width: 100%;
+    max-width: 480px;
+    text-align: center;
+    animation: slideUp 0.3s ease;
+  }
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+  .popup-emoji { font-size: 48px; margin-bottom: 12px; }
+  .popup-score {
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .popup-score.plus { color: var(--green); }
+  .popup-score.minus { color: var(--red); }
+  .popup-msg {
+    font-size: 16px;
+    color: var(--mid);
+    line-height: 1.6;
+    margin-bottom: 20px;
+  }
+  .popup-close {
+    background: var(--red);
+    color: white;
+    border: none;
+    border-radius: 24px;
+    padding: 12px 40px;
+    font-size: 15px;
+    font-family: 'Noto Sans SC', sans-serif;
+    cursor: pointer;
+  }
+
+  /* ATTR PANEL */
+  .attr-item {
+    background: white;
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    border: 1.5px solid var(--border);
+  }
+  .attr-top {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .attr-icon { font-size: 18px; margin-right: 10px; }
+  .attr-name { flex: 1; font-size: 14px; font-weight: 500; }
+  .attr-lv {
+    font-size: 11px;
+    background: var(--red-pale);
+    color: var(--red);
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 700;
+  }
+  .attr-bar-bg {
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .attr-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--red-light), var(--green-bright));
+    border-radius: 3px;
+    transition: width 0.5s ease;
+  }
+  .attr-progress {
+    font-size: 11px;
+    color: var(--light);
+    margin-top: 4px;
+    text-align: right;
+  }
+
+  /* SHOP */
+  .shop-section { margin-bottom: 24px; }
+  .shop-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--red);
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+    padding: 4px 10px;
+    background: var(--red-pale);
+    border-radius: 6px;
+    display: inline-block;
+  }
+  .shop-item {
+    display: flex;
+    align-items: center;
+    background: white;
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    border: 1.5px solid var(--border);
+  }
+  .shop-icon { font-size: 22px; margin-right: 12px; }
+  .shop-name { flex: 1; font-size: 14px; }
+  .shop-cost { font-size: 13px; color: var(--light); margin-right: 10px; }
+  .shop-btn {
+    background: var(--red);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: 'Noto Sans SC', sans-serif;
+    font-weight: 500;
+    transition: opacity 0.2s;
+  }
+  .shop-btn:disabled {
+    background: var(--border);
+    color: var(--light);
+    cursor: not-allowed;
+  }
+  .shop-legend {
+    background: var(--green-pale);
+    border: 1.5px solid var(--green-light);
+    border-radius: 10px;
+    padding: 14px;
+    margin-top: 16px;
+    text-align: center;
+  }
+  .shop-legend-icon { font-size: 32px; }
+  .shop-legend-name { font-size: 16px; font-weight: 700; color: var(--green); margin: 6px 0 4px; }
+  .shop-legend-cost { font-size: 13px; color: var(--light); margin-bottom: 10px; }
+  .shop-legend-bar-bg {
+    height: 8px;
+    background: var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 4px;
+  }
+  .shop-legend-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--green-light), var(--green-bright));
+    border-radius: 4px;
+    transition: width 0.5s;
+  }
+  .shop-legend-progress { font-size: 12px; color: var(--light); }
+
+  /* LOG */
+  .log-wrap {
+    position: relative;
+    overflow: hidden;
+    border-bottom: 1px solid var(--border);
+  }
+  .log-delete-bg {
+    position: absolute;
+    right: 0; top: 0; bottom: 0;
+    width: 80px;
+    background: var(--red);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1px;
+  }
+  .log-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 0;
+    background: var(--cream);
+    position: relative;
+    transition: transform 0.25s ease;
+    touch-action: pan-y;
+  }
+  .log-item.swiped { transform: translateX(-80px); }
+  .log-time { font-size: 11px; color: var(--light); width: 80px; flex-shrink: 0; }
+  .log-name { flex: 1; font-size: 13px; }
+  .log-score { font-size: 14px; font-weight: 700; min-width: 40px; text-align: right; }
+  .log-score.plus { color: var(--green); }
+  .log-score.minus { color: var(--red); }
+  .empty-log {
+    text-align: center;
+    color: var(--light);
+    padding: 40px 0;
+    font-size: 14px;
+  }
+  .log-clear-btn {
+    width: 100%;
+    padding: 12px;
+    background: white;
+    border: 1.5px solid #FFCDD2;
+    border-radius: 10px;
+    color: var(--red);
+    font-size: 13px;
+    cursor: pointer;
+    font-family: 'Noto Sans SC', sans-serif;
+    margin-top: 16px;
+  }
+
+  /* RESET */
+  .reset-btn {
+    width: 100%;
+    padding: 14px;
+    background: white;
+    border: 2px solid #FFCDD2;
+    border-radius: 10px;
+    color: var(--red);
+    font-size: 14px;
+    cursor: pointer;
+    font-family: 'Noto Sans SC', sans-serif;
+    margin-top: 20px;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-title">🍎 苹果苏苏提升计划</div>
+  <div class="header-sub">2026 · 变好的每一天</div>
+  <div class="score-row">
+    <div class="score-box">
+      <div class="score-label">可用积分</div>
+      <div class="score-num" id="availScore">0</div>
+    </div>
+    <div class="score-box">
+      <div class="score-label">累计总分</div>
+      <div class="score-num" id="totalScore">0</div>
+    </div>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('tasks')"><span class="tab-icon">📋</span>任务</div>
+  <div class="tab" onclick="switchTab('attrs')"><span class="tab-icon">💎</span>属性</div>
+  <div class="tab" onclick="switchTab('shop')"><span class="tab-icon">🎁</span>商城</div>
+  <div class="tab" onclick="switchTab('log')"><span class="tab-icon">📖</span>记录</div>
+</div>
+
+<!-- TASKS -->
+<div class="panel active" id="panel-tasks">
+
+  <div class="section">
+    <div class="section-title"><span class="section-icon">🌅</span>工作日习惯</div>
+    <div class="task-item" onclick="toggle(this)" data-score="8" data-msg="太棒了！7:10准时起床，今天开了个好头 🌞" data-attr="意志">
+      <div class="task-check"></div>
+      <div class="task-name">7:10前起床出门准备</div>
+      <div class="task-score">+8</div>
+    </div>
+    <div class="task-item" onclick="toggle(this)" data-score="5" data-msg="出门前吃早饭啦！身体是最重要的 🥚" data-attr="健康">
+      <div class="task-check"></div>
+      <div class="task-name">出门前吃了早饭</div>
+      <div class="task-score">+5</div>
+    </div>
+    <div class="task-item" onclick="toggle(this)" data-score="3" data-msg="虽然没吃早饭，但还是准时出门了，+3分鼓励一下 🚶" data-attr="意志">
+      <div class="task-check"></div>
+      <div class="task-name">没吃早饭但按时到校</div>
+      <div class="task-score">+3</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title"><span class="section-icon">🌙</span>周末习惯</div>
+    <div class="task-item" onclick="toggle(this)" data-score="8" data-msg="周末10点前起床！你比很多人都自律 ✨" data-attr="意志">
+      <div class="task-check"></div>
+      <div class="task-name">10点前起床</div>
+      <div class="task-score">+8</div>
+    </div>
+    <div class="task-item" onclick="toggle(this)" data-score="5" data-msg="10-11点起床，算早了，好的好的 🌿" data-attr="意志">
+      <div class="task-check"></div>
+      <div class="task-name">10-11点起床</div>
+      <div class="task-score">+5</div>
+    </div>
+    <div class="task-item" onclick="toggle(this)" data-score="8" data-msg="周末好好吃饭了！一个人在家也要照顾好自己 🍚" data-attr="健康">
+      <div class="task-check"></div>
+      <div class="task-name">周末好好吃了正餐</div>
+      <div class="task-score">+8</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title"><span class="section-icon">📋</span>日常习惯</div>
+    <div class="task-item" onclick="toggle(this)" data-score="5" data-msg="今天早睡了！好好睡觉才能好好生活 🌙" data-attr="健康">
+      <div class="task-check"></div>
+      <div class="task-name">12点前睡觉</div>
+      <div class="task-score">+5</div>
+    </div>
+    <div class="task-item" onclick="toggle(this)" data-score="3" data-msg="喝够1500ml水了！皮肤会变好的 💧" data-attr="健康">
+      <div class="task-check"></div>
+      <div class="task-name">今天喝够水（1500ml以上）</div>
+      <div class="task-score">+3</div>
+    </div>
+    <div class="task-item" onclick="toggle(this)" data-score="3" data-msg="洗澡啦，干净的苏苏最好看 🚿" data-attr="生活力">
+      <div class="task-check"></div>
+      <div class="task-name">洗澡了</div>
+      <div class="task-score">+3</div>
+    </div>
+    <div class="task-item" onclick="toggle(this)" data-score="5" data-msg="当天洗碗！这个拖延症克服了，厉害 🍽️" data-attr="生活力">
+      <div class="task-check"></div>
+      <div class="task-name">当天洗碗</div>
+      <div class="task-score">+5</div>
+    </div>
+    <div class="task-item" onclick="toggle(this)" data-score="2" data-msg="拖了一天但还是洗了，+2分，下次早点哦 🫧" data-attr="生活力">
+      <div class="task-check"></div>
+      <div class="task-name">隔天洗碗（拖了一天）</div>
+      <div class="task-score">+2</div>
+    </div>
+    <div class="task-item" onclick="toggle(this)" data-score="4" data-msg="衣服洗了！生活自理能力满分 👕" data-attr="生活力">
+      <div class="task-check"></div>
+      <div class="task-name">洗了衣服/袜子</div>
+      <div class="task-score">+4</div>
+    </div>
+    <div class="task-item" onclick="toggle(this)" data-score="5" data-msg="收拾房间了！整洁的空间让心情也变好 🧹" data-attr="生活力">
+      <div class="task-check"></div>
+      <div class="task-name">收拾了房间或桌面</div>
+      <div class="task-score">+5</div>
+    </div>
+    <div class="task-item" onclick="toggle(this)" data-score="8" data-msg="自己做饭！好好吃饭的苏苏太棒了 🍳" data-attr="烹饪">
+      <div class="task-check"></div>
+      <div class="task-name">自己做饭了</div>
+      <div class="task-score">+8</div>
+    </div>
+    <div class="task-item" onclick="toggle(this)" data-score="3" data-msg="今天没点外卖，存了钱也健康了 💪" data-attr="生活力">
+      <div class="task-check"></div>
+      <div class="task-name">今天没点外卖</div>
+      <div class="task-score">+3</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title"><span class="section-icon">💪</span>身体管理</div>
+    <div class="task-item" onclick="toggle(this)" data-score="10" data-msg="运动了！30分钟以上，你在认真对待自己的身体 🏃" data-attr="运动">
+      <div class="task-check"></div>
+      <div class="task-name">运动/散步30分钟以上</div>
+      <div class="task-score">+10</div>
+    </div>
+    <div class="task-item" onclick="toggle(this)" data-score="15" data-msg="去上课了！坚持打卡，慢慢就会爱上这件事的 🩰" data-attr="运动">
+      <div class="task-check"></div>
+      <div class="task-name">去上了健身房/舞蹈课</div>
+      <div class="task-score">+15</div>
+    </div>
+    <div class="task-item" onclick="toggle(this)" data-score="5" data-msg="今天没吃零食，自律的力量！🍃" data-attr="健康">
+      <div class="task-check"></div>
+      <div class="task-name">今天没吃零食</div>
+      <div class="task-score">+5</div>
+    </div>
+    <div class="task-item" onclick="toggle(this)" data-score="3" data-msg="没喝奶茶，钱包和身体都感谢你 🌿" data-attr="健康">
+      <div class="task-check"></div>
+      <div class="task-name">今天没喝奶茶</div>
+      <div class="task-score">+3</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title"><span class="section-icon">🧠</span>学习成长</div>
+    <div class="task-item" onclick="toggle(this)" data-score="10" data-msg="学了新的专业知识！大脑在升级中 📚" data-attr="智识">
+      <div class="task-check"></div>
+      <div class="task-name">学了新的学术/专业内容</div>
+      <div class="task-score">+10</div>
+    </div>
+    <div class="task-item" onclick="toggle(this)" data-score="8" data-msg="备课了！认真负责的老师苏苏 📝" data-attr="智识">
+      <div class="task-check"></div>
+      <div class="task-name">备好了一节课/教学准备</div>
+      <div class="task-score">+8</div>
+    </div>
+    <div class="task-item" onclick="toggle(this)" data-score="10" data-msg="今天学了Vibe Coding / Claude Code！你在超进化 🤖" data-attr="智识">
+      <div class="task-check"></div>
+      <div class="task-name">学了Vibe Coding / Claude Code</div>
+      <div class="task-score">+10</div>
+    </div>
+    <div class="task-item" onclick="toggle(this)" data-score="10" data-msg="AI项目推进了！你在做别人还不会做的事 🚀" data-attr="智识">
+      <div class="task-check"></div>
+      <div class="task-name">AI小游戏/网页项目推进了</div>
+      <div class="task-score">+10</div>
+    </div>
+    <div class="task-item" onclick="toggle(this)" data-score="8" data-msg="读书30分钟！知识在慢慢积累 📖" data-attr="智识">
+      <div class="task-check"></div>
+      <div class="task-name">读书30分钟以上</div>
+      <div class="task-score">+8</div>
+    </div>
+    <div class="task-item" onclick="toggle(this)" data-score="8" data-msg="贝壳小镇又长大了一点点 🐚" data-attr="智识">
+      <div class="task-check"></div>
+      <div class="task-name">写了故事/贝壳小镇世界观</div>
+      <div class="task-score">+8</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title"><span class="section-icon">🎨</span>创作才艺</div>
+    <div class="task-item" onclick="toggle(this)" data-score="5" data-msg="织毛线了，哪怕一点点也是进步 🧶" data-attr="才艺">
+      <div class="task-check"></div>
+      <div class="task-name">织毛线了（哪怕一点点）</div>
+      <div class="task-score">+5</div>
+    </div>
+    <div class="task-item" onclick="toggle(this)" data-score="8" data-msg="做了设计练习，技能在增长！🎨" data-attr="才艺">
+      <div class="task-check"></div>
+      <div class="task-name">做了设计练习/画了东西</div>
+      <div class="task-score">+8</div>
+    </div>
+    <div class="task-item" onclick="toggle(this)" data-score="3" data-msg="拍了好看的照片，记录美好生活 📸" data-attr="才艺">
+      <div class="task-check"></div>
+      <div class="task-name">拍了好看的照片</div>
+      <div class="task-score">+3</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title"><span class="section-icon">💜</span>情绪管理</div>
+    <div class="task-item" onclick="toggle(this)" data-score="8" data-msg="今天没有过度胡思乱想！脑子里安静的感觉好不好？🌸" data-attr="意志">
+      <div class="task-check"></div>
+      <div class="task-name">今天没有过度胡思乱想（自评诚实）</div>
+      <div class="task-score">+8</div>
+    </div>
+    <div class="task-item" onclick="toggle(this)" data-score="10" data-msg="焦虑来了，没有让它蔓延！这需要很大的力气，你做到了 💪" data-attr="意志">
+      <div class="task-check"></div>
+      <div class="task-name">焦虑来了，没有任由它蔓延</div>
+      <div class="task-score">+10</div>
+    </div>
+    <div class="task-item" onclick="toggle(this)" data-score="10" data-msg="主动说出感受了！表达情绪是需要勇气的，好棒 🗣️" data-attr="情商">
+      <div class="task-check"></div>
+      <div class="task-name">主动说出了感受，没有憋着</div>
+      <div class="task-score">+10</div>
+    </div>
+    <div class="task-item" onclick="toggle(this)" data-score="8" data-msg="被说了什么，没有过度自我怀疑！你很好的，真的 🌻" data-attr="情商">
+      <div class="task-check"></div>
+      <div class="task-name">被说了什么，没有过度自我怀疑</div>
+      <div class="task-score">+8</div>
+    </div>
+    <div class="task-item" onclick="toggle(this)" data-score="5" data-msg="对自己说了一句好话！要继续的，每天都要 💛" data-attr="情商">
+      <div class="task-check"></div>
+      <div class="task-name">今天对自己说了一句好话</div>
+      <div class="task-score">+5</div>
+    </div>
+    <div class="task-item" onclick="toggle(this)" data-score="8" data-msg="没有反复回想难受的事，放下很难，你做到了 🌊" data-attr="意志">
+      <div class="task-check"></div>
+      <div class="task-name">没有反复回想让自己难受的事</div>
+      <div class="task-score">+8</div>
+    </div>
+    <div class="task-item" onclick="toggle(this)" data-score="10" data-msg="难过了但还是照顾好了自己！这是非常了不起的事 🫂" data-attr="情商">
+      <div class="task-check"></div>
+      <div class="task-name">难过了但照顾好了自己（吃饭睡觉洗澡都做了）</div>
+      <div class="task-score">+10</div>
+    </div>
+    <div class="task-item" onclick="toggle(this)" data-score="5" data-msg="今天真的笑了！记住这个笑容 😊" data-attr="情商">
+      <div class="task-check"></div>
+      <div class="task-name">今天有一刻真的笑了</div>
+      <div class="task-score">+5</div>
+    </div>
+    <div class="task-item" onclick="toggle(this)" data-score="8" data-msg="主动联系了想联系的人，主动的苏苏很勇敢 💌" data-attr="情商">
+      <div class="task-check"></div>
+      <div class="task-name">主动联系了想联系的人</div>
+      <div class="task-score">+8</div>
+    </div>
+    <div class="task-item" onclick="toggle(this)" data-score="8" data-msg="没有因为别人的情绪内耗！边界感满分 🛡️" data-attr="情商">
+      <div class="task-check"></div>
+      <div class="task-name">今天没有因为别人的情绪过度内耗</div>
+      <div class="task-score">+8</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title" style="color: var(--red)"><span class="section-icon">⚠️</span>扣分项</div>
+    <div class="task-item deduct" onclick="toggle(this)" data-score="-8" data-msg="哎，熬过1点了……今天就这样，明天早点睡好吗 🦉" data-attr="">
+      <div class="task-check"></div>
+      <div class="task-name">熬夜超过1点</div>
+      <div class="task-score">-8</div>
+    </div>
+    <div class="task-item deduct" onclick="toggle(this)" data-score="-15" data-msg="超过2点了！身体会抗议的，真的 😴" data-attr="">
+      <div class="task-check"></div>
+      <div class="task-name">熬夜超过2点</div>
+      <div class="task-score">-15</div>
+    </div>
+    <div class="task-item deduct" onclick="toggle(this)" data-score="-10" data-msg="今天整个摆烂了……没关系，明天重新开始 🍃" data-attr="">
+      <div class="task-check"></div>
+      <div class="task-name">无故摆烂一整天</div>
+      <div class="task-score">-10</div>
+    </div>
+    <div class="task-item deduct" onclick="toggle(this)" data-score="-5" data-msg="碗/袜子拖过两天了，下次别拖这么久 🫧" data-attr="">
+      <div class="task-check"></div>
+      <div class="task-name">碗/袜子拖超过两天</div>
+      <div class="task-score">-5</div>
+    </div>
+    <div class="task-item deduct" onclick="toggle(this)" data-score="-8" data-msg="对自己说了很多坏话……你不需要那样对自己的 💙" data-attr="">
+      <div class="task-check"></div>
+      <div class="task-name">对自己说了很多坏话</div>
+      <div class="task-score">-8</div>
+    </div>
+    <div class="task-item deduct" onclick="toggle(this)" data-score="-5" data-msg="情绪崩了，但也没有照顾好自己……下次崩了，先喝水、吃东西 🌧️" data-attr="">
+      <div class="task-check"></div>
+      <div class="task-name">情绪崩了但完全没有自我照顾</div>
+      <div class="task-score">-5</div>
+    </div>
+  </div>
+
+  <button class="reset-btn" onclick="resetDay()">🔄 重置今日数据</button>
+</div>
+
+<!-- ATTRS -->
+<div class="panel" id="panel-attrs">
+  <div id="attrList"></div>
+</div>
+
+<!-- SHOP -->
+<div class="panel" id="panel-shop">
+  <div class="shop-section">
+    <div class="shop-title">🍬 日常小确幸</div>
+    <div class="shop-item"><span class="shop-icon">🧋</span><span class="shop-name">一杯奶茶</span><span class="shop-cost">30分</span><button class="shop-btn" onclick="redeem(this,30,'一杯奶茶🧋')">兑换</button></div>
+    <div class="shop-item"><span class="shop-icon">🍪</span><span class="shop-name">一份零食</span><span class="shop-cost">30分</span><button class="shop-btn" onclick="redeem(this,30,'一份零食🍪')">兑换</button></div>
+    <div class="shop-item"><span class="shop-icon">🍱</span><span class="shop-name">一顿好吃的外卖</span><span class="shop-cost">50分</span><button class="shop-btn" onclick="redeem(this,50,'一顿好吃的外卖🍱')">兑换</button></div>
+  </div>
+  <div class="shop-section">
+    <div class="shop-title">🎀 进阶奖励</div>
+    <div class="shop-item"><span class="shop-icon">🧶</span><span class="shop-name">新毛线/手工材料</span><span class="shop-cost">100分</span><button class="shop-btn" onclick="redeem(this,100,'新毛线🧶')">兑换</button></div>
+    <div class="shop-item"><span class="shop-icon">👗</span><span class="shop-name">一件想买的衣服</span><span class="shop-cost">200分</span><button class="shop-btn" onclick="redeem(this,200,'一件想买的衣服👗')">兑换</button></div>
+    <div class="shop-item"><span class="shop-icon">🎮</span><span class="shop-name">游戏充值</span><span class="shop-cost">150分</span><button class="shop-btn" onclick="redeem(this,150,'游戏充值🎮')">兑换</button></div>
+    <div class="shop-item"><span class="shop-icon">📷</span><span class="shop-name">拍一组写真</span><span class="shop-cost">600分</span><button class="shop-btn" onclick="redeem(this,600,'写真📷')">兑换</button></div>
+  </div>
+  <div class="shop-legend">
+    <div class="shop-legend-icon">✈️🍣</div>
+    <div class="shop-legend-name">✨ 传说级：旅行基金</div>
+    <div class="shop-legend-cost">2000分解锁</div>
+    <div class="shop-legend-bar-bg">
+      <div class="shop-legend-bar" id="legendBar" style="width:0%"></div>
+    </div>
+    <div class="shop-legend-progress" id="legendProgress">0 / 2000</div>
+  </div>
+</div>
+
+<!-- LOG -->
+<div class="panel" id="panel-log">
+  <div id="logList"></div>
+</div>
+
+<!-- POPUP -->
+<div class="popup-overlay" id="popup" onclick="closePopup()">
+  <div class="popup" onclick="event.stopPropagation()">
+    <div class="popup-emoji" id="popupEmoji">🎉</div>
+    <div class="popup-score" id="popupScore"></div>
+    <div class="popup-msg" id="popupMsg"></div>
+    <button class="popup-close" onclick="closePopup()">好的！</button>
+  </div>
+</div>
+
+<script>
+const ATTRS = [
+  {key:'健康', icon:'💚', max:20},
+  {key:'运动', icon:'🏃', max:20},
+  {key:'意志', icon:'🔥', max:20},
+  {key:'智识', icon:'🧠', max:20},
+  {key:'情商', icon:'💬', max:20},
+  {key:'生活力', icon:'🔧', max:20},
+  {key:'烹饪', icon:'🍳', max:20},
+  {key:'才艺', icon:'🎨', max:20},
+];
+
+let state = JSON.parse(localStorage.getItem('susuState') || 'null') || {
+  avail: 0,
+  total: 0,
+  attrs: {},
+  log: [],
+  checked: {}
+};
+
+function save() {
+  localStorage.setItem('susuState', JSON.stringify(state));
+}
+
+function updateHeader() {
+  document.getElementById('availScore').textContent = state.avail;
+  document.getElementById('totalScore').textContent = state.total;
+  const pct = Math.min(100, (state.total / 2000) * 100);
+  document.getElementById('legendBar').style.width = pct + '%';
+  document.getElementById('legendProgress').textContent = state.total + ' / 2000';
+}
+
+function renderAttrs() {
+  const list = document.getElementById('attrList');
+  list.innerHTML = ATTRS.map(a => {
+    const pts = state.attrs[a.key] || 0;
+    const lv = Math.floor(pts / 20);
+    const prog = pts % 20;
+    const pct = (prog / 20) * 100;
+    return `<div class="attr-item">
+      <div class="attr-top">
+        <span class="attr-icon">${a.icon}</span>
+        <span class="attr-name">${a.key}</span>
+        <span class="attr-lv">Lv.${lv}</span>
+      </div>
+      <div class="attr-bar-bg"><div class="attr-bar" style="width:${pct}%"></div></div>
+      <div class="attr-progress">${prog}/20</div>
+    </div>`;
+  }).join('');
+}
+
+function renderLog() {
+  const el = document.getElementById('logList');
+  if (!state.log.length) {
+    el.innerHTML = '<div class="empty-log">🍎 今天还没有记录<br>去打卡第一个任务吧！</div>';
+    return;
+  }
+  const reversed = state.log.slice().reverse();
+  el.innerHTML = reversed.map((l, ri) => {
+    const realIdx = state.log.length - 1 - ri;
+    return `<div class="log-wrap" data-idx="${realIdx}">
+      <div class="log-delete-bg">删除</div>
+      <div class="log-item">
+        <span class="log-time">${l.time}</span>
+        <span class="log-name">${l.name}</span>
+        <span class="log-score ${l.score > 0 ? 'plus' : 'minus'}">${l.score > 0 ? '+' : ''}${l.score}</span>
+      </div>
+    </div>`;
+  }).join('') + (state.log.length ? `<button class="log-clear-btn" onclick="clearAllLog()">🗑️ 清空全部记录</button>` : '');
+  attachSwipe();
+}
+
+function attachSwipe() {
+  document.querySelectorAll('.log-wrap').forEach(wrap => {
+    const item = wrap.querySelector('.log-item');
+    let startX = 0, startY = 0, swiped = false;
+    item.addEventListener('touchstart', e => {
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+      swiped = item.classList.contains('swiped');
+    }, { passive: true });
+    item.addEventListener('touchend', e => {
+      const dx = e.changedTouches[0].clientX - startX;
+      const dy = Math.abs(e.changedTouches[0].clientY - startY);
+      if (dy > 30) return;
+      if (dx < -40 && !swiped) {
+        document.querySelectorAll('.log-item.swiped').forEach(i => i.classList.remove('swiped'));
+        item.classList.add('swiped');
+      } else if (dx > 20 && swiped) {
+        item.classList.remove('swiped');
+      } else if (swiped) {
+        const idx = parseInt(wrap.dataset.idx);
+        deleteLog(idx);
+      }
+    }, { passive: true });
+  });
+}
+
+function deleteLog(idx) {
+  const entry = state.log[idx];
+  if (!entry) return;
+  state.avail -= entry.score;
+  if (entry.score > 0) state.total = Math.max(0, state.total - entry.score);
+  state.log.splice(idx, 1);
+  save(); updateHeader(); renderLog();
+}
+
+function clearAllLog() {
+  if (!confirm('确认清空全部记录？')) return;
+  state.log = [];
+  save(); renderLog();
+}
+
+function toggle(el) {
+  const score = parseInt(el.dataset.score);
+  const msg = el.dataset.msg;
+  const attr = el.dataset.attr;
+  const isDeduct = score < 0;
+
+  if (el.classList.contains('checked')) {
+    el.classList.remove('checked');
+    el.querySelector('.task-check').textContent = '';
+    state.avail -= score;
+    if (!isDeduct) state.total -= score;
+    if (attr && !isDeduct) state.attrs[attr] = Math.max(0, (state.attrs[attr]||0) - 1);
+    save(); updateHeader(); renderAttrs();
+    return;
+  }
+
+  el.classList.add('checked');
+  el.querySelector('.task-check').textContent = '✓';
+  state.avail += score;
+  if (!isDeduct && score > 0) state.total += score;
+  if (attr && !isDeduct) {
+    state.attrs[attr] = (state.attrs[attr] || 0) + 1;
+  }
+
+  const now = new Date();
+  const time = (now.getMonth()+1)+'/'+now.getDate()+' '+now.getHours()+':'+String(now.getMinutes()).padStart(2,'0');
+  state.log.push({name: el.querySelector('.task-name').textContent, score, time});
+
+  save(); updateHeader(); renderAttrs(); renderLog();
+  showPopup(score, msg, isDeduct);
+}
+
+function showPopup(score, msg, isDeduct) {
+  const emojis = isDeduct ? ['😔','🫂','💙','🌧️'] : ['🎉','✨','🌟','🍎','💚'];
+  document.getElementById('popupEmoji').textContent = emojis[Math.floor(Math.random()*emojis.length)];
+  const el = document.getElementById('popupScore');
+  el.textContent = (score > 0 ? '+' : '') + score;
+  el.className = 'popup-score ' + (score > 0 ? 'plus' : 'minus');
+  document.getElementById('popupMsg').textContent = msg;
+  document.getElementById('popup').classList.add('show');
+}
+
+function closePopup() {
+  document.getElementById('popup').classList.remove('show');
+}
+
+function redeem(btn, cost, name) {
+  if (state.avail < cost) {
+    alert('积分不够哦～再努力一下！');
+    return;
+  }
+  if (!confirm('确认兑换「' + name + '」吗？消耗' + cost + '积分')) return;
+  state.avail -= cost;
+  const now = new Date();
+  const time = (now.getMonth()+1)+'/'+now.getDate()+' '+now.getHours()+':'+String(now.getMinutes()).padStart(2,'0');
+  state.log.push({name: '兑换：'+name, score: -cost, time});
+  save(); updateHeader(); renderLog();
+  alert('兑换成功！去享受吧 🎉');
+}
+
+function resetDay() {
+  if (!confirm('确认重置今日所有打卡记录？积分和属性不会清零。')) return;
+  document.querySelectorAll('.task-item.checked').forEach(el => {
+    el.classList.remove('checked');
+    el.querySelector('.task-check').textContent = '';
+  });
+}
+
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach((t,i) => {
+    t.classList.toggle('active', ['tasks','attrs','shop','log'][i] === name);
+  });
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  if (name === 'attrs') renderAttrs();
+  if (name === 'log') renderLog();
+}
+
+updateHeader();
+renderAttrs();
+renderLog();
+</script>
+</body>
+</html>
